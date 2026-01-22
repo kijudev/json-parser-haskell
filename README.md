@@ -6,3 +6,4 @@ A simple proof-of-concept JSON parser implemented in Haskell using monadic parse
 
 - [The original monadic parser combinators whitepaper/tutorial](https://people.cs.nott.ac.uk/pszgmh/monparsing.pdf)
 - [Tsoding youtube video about JSON parsing in Haskell](https://www.youtube.com/watch?v=N9RUqGYuGfw&t=1779s)
+- [Great article/tutorial on JSON parsing in Haskell](https://abhinavsarkar.net/posts/json-parsing-from-scratch-in-haskell/)
