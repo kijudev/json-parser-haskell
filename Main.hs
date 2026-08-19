@@ -1,10 +1,11 @@
 module Main where
 
+import Control.Applicative
 import Data.Char
 
 data JsonValue
   = JsonNull
-  | JsonBool
+  | JsonBool Bool
   | JsonNumber Integer
   | JsonString String
   | JsonArray [JsonValue]
@@ -29,8 +30,10 @@ instance Applicative Parser where
         Nothing -> Nothing
         Just (r2, x) -> Just (r2, f x)
 
-jsonNull :: Parser JsonValue
-jsonNull = undefined
+instance Alternative Parser where
+  empty = Parser $ \_ -> Nothing
+  (Parser p1) <|> (Parser p2) = Parser $ \input ->
+    (p1 input) <|> (p2 input)
 
 charP :: Char -> Parser Char
 charP x = Parser f
@@ -40,8 +43,19 @@ charP x = Parser f
       | otherwise = Nothing
     f [] = Nothing
 
--- stringP :: String -> Parser String
--- stringP = sequenceA . map charP
+stringP :: String -> Parser String
+stringP = sequenceA . map charP
+
+jsonNull :: Parser JsonValue
+jsonNull = (\_ -> JsonNull) <$> stringP "null"
+
+jsonBool :: Parser JsonValue
+jsonBool = f <$> (stringP "true" <|> stringP "false")
+  where
+    f "true" = JsonBool True
+    f "false" = JsonBool False
+    -- This should never happen :)
+    f _ = undefined
 
 main :: IO ()
 main = undefined
