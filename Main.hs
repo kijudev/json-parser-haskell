@@ -46,6 +46,27 @@ charP x = Parser f
 stringP :: String -> Parser String
 stringP = sequenceA . map charP
 
+spanP :: (Char -> Bool) -> Parser String
+spanP f = Parser $ \input ->
+  let (token, rest) = span f input
+   in Just (rest, token)
+
+notEmpty :: Parser [a] -> Parser [a]
+notEmpty (Parser p) =
+  Parser $ \input -> case p input of
+    Nothing -> Nothing
+    Just (rest, x) | null x -> Nothing
+    Just (rest, x) -> Just (rest, x)
+
+stringLiteral :: Parser String
+stringLiteral = spanP (/= '"')
+
+ws :: Parser String
+ws = spanP isSpace
+
+sepBy :: Parser a -> Parser b -> Parser [b]
+sepBy sep element = (:) <$> element <*> many (sep *> element) <|> pure []
+
 jsonNull :: Parser JsonValue
 jsonNull = (\_ -> JsonNull) <$> stringP "null"
 
@@ -56,6 +77,22 @@ jsonBool = f <$> (stringP "true" <|> stringP "false")
     f "false" = JsonBool False
     -- This should never happen :)
     f _ = undefined
+
+jsonNumber :: Parser JsonValue
+jsonNumber = f <$> notEmpty (spanP isDigit)
+  where
+    f ds = JsonNumber $ read ds
+
+jsonString :: Parser JsonValue
+jsonString = JsonString <$> (charP '"' *> stringLiteral <* charP '"')
+
+jsonArray :: Parser JsonValue
+jsonArray = JsonArray <$> (charP '[' *> ws *> elements <* ws <* charP ']')
+  where
+    elements = sepBy (ws *> charP ',' <* ws) jsonValue
+
+jsonValue :: Parser JsonValue
+jsonValue = jsonNull <|> jsonBool <|> jsonNumber <|> jsonString <|> jsonArray
 
 main :: IO ()
 main = undefined
