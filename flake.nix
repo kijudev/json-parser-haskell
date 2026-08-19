@@ -1,35 +1,31 @@
 {
-  description = "Haskell Dev Shell";
+  description = "Minimal Haskell Dev Shell";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
-    { nixpkgs, ... }:
-    let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs {
-        inherit system;
-      };
-    in
     {
-      devShells.${system}.default = pkgs.mkShell.override { } {
-        packages = with pkgs; [
-          nixd
-          nil
-          package-version-server
-
-          haskellPackages.ghc
-          pkgs.haskell-language-server
-          pkgs.ormolu
-        ];
-
-        shellHook = ''
-          echo "======== Haskell Dev Shell ========"
-          echo "GHC Version: $(ghc --version)"
-        '';
-      };
-
-    };
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+      {
+        devShells.default = pkgs.mkShell {
+          buildInputs = [
+            pkgs.ghc
+            pkgs.cabal-install
+            pkgs.haskell-language-server
+            pkgs.ghcid
+          ];
+        };
+      }
+    );
 }
