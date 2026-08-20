@@ -108,5 +108,10 @@ jsonObject =
 jsonValue :: Parser JsonValue
 jsonValue = jsonNull <|> jsonBool <|> jsonNumber <|> jsonString <|> jsonArray <|> jsonObject
 
+parseFile :: FilePath -> Parser a -> IO (Maybe a)
+parseFile filename parser = do
+  input <- readFile filename
+  return (snd <$> runParser parser input)
+
 main :: IO ()
 main = undefined

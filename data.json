@@ -1,0 +1,10 @@
+{
+  "a": 69,
+  "b": "42",
+  "c": null
+  "user": {
+    "name": "Bobby Goo",
+    "age": 20,
+    "email": "bobby@goo.com"
+  }
+}
